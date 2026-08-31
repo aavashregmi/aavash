@@ -1,0 +1,106 @@
+/* ==========================================================================
+   TYPOGRAPHY & EDITORIAL STYLES (MEDIUM WEIGHT & HIGH CONTRAST)
+   All fonts tuned to crisp Medium (500) and Semi-Bold (600/700) weights
+   ========================================================================== */
+
+/* Web Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,500;0,600;0,700;0,800;1,500&family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
+
+body {
+  font-weight: 500; /* Medium weight across all base text */
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  color: var(--text-primary);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  font-weight: 700;
+}
+
+.display-title {
+  font-size: var(--text-display);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+}
+
+.heading-1 {
+  font-size: var(--text-h1);
+  font-weight: 800;
+  letter-spacing: var(--tracking-tight);
+}
+
+.heading-2 {
+  font-size: var(--text-h2);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+}
+
+.heading-3 {
+  font-size: var(--text-h3);
+  font-weight: 700;
+}
+
+p, li, span, a, label {
+  font-weight: 500; /* Ensures no thin/faint rendering */
+}
+
+.text-lead {
+  font-size: var(--text-lead);
+  line-height: var(--lh-snug);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.text-muted {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.text-accent {
+  color: var(--accent-white);
+  font-weight: 600;
+}
+
+.text-gradient {
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
+  font-weight: 800;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  color: #ffffff;
+}
+
+.eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  box-shadow: 0 0 10px #ffffff;
+}
+
+.code-badge {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  font-weight: 500;
+  padding: 0.25em 0.6em;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  color: var(--text-primary);
+}

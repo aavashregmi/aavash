@@ -1,0 +1,123 @@
+/* ==========================================================================
+   AAVASH REGMI — LUXURY MONOCHROMATIC TOKENS (BLACK & PURE WHITE)
+   Ultra-high contrast obsidian void, stark white typography & specular frost
+   ========================================================================== */
+
+:root {
+  /* Obsidian & Pure Monochrome Palette */
+  --bg-primary: #040406;
+  --bg-secondary: #0a0a0e;
+  --bg-tertiary: #101117;
+  --bg-glass: rgba(10, 10, 14, 0.78);
+  --bg-card: rgba(14, 15, 20, 0.75);
+  --bg-card-hover: rgba(22, 24, 32, 0.95);
+  --bg-surface: #14151c;
+  --bg-elevated: #1a1b24;
+
+  /* Stark Pure White & Specular Frost Accents */
+  --accent-white: #ffffff;
+  --accent-frost: #e2e8f0;
+  --accent-silver: #cbd5e1;
+  --accent-cyan: #ffffff; /* Monochromatic stark highlights */
+  --accent-indigo: #e2e8f0;
+  --accent-glow: rgba(255, 255, 255, 0.15);
+  --accent-emerald: #ffffff;
+  --accent-amber: #f8fafc;
+  --accent-rose: #ff3366; /* Kept for errors and easter eggs */
+
+  --gradient-accent: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #94a3b8 100%);
+  --gradient-subtle: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.02) 100%);
+  --gradient-glow: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.04) 50%, transparent 80%);
+
+  /* Text & Contrast */
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --text-dim: #52525b;
+  --text-accent: #ffffff;
+
+  /* Borders & Dividers */
+  --border-hairline: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.15);
+  --border-accent: rgba(255, 255, 255, 0.5);
+  --border-glow: rgba(255, 255, 255, 0.7);
+
+  /* Shadows & Specular Glows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 8px 30px -4px rgba(0, 0, 0, 0.8);
+  --shadow-lg: 0 20px 50px -10px rgba(0, 0, 0, 0.95);
+  --shadow-glow: 0 0 50px rgba(255, 255, 255, 0.15);
+  --shadow-inner: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+
+  /* Typography Scale — Fluid via clamp() */
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Syne', var(--font-sans);
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  --text-display: clamp(2.75rem, 7.5vw + 1rem, 6.5rem);
+  --text-h1: clamp(2.25rem, 5vw + 0.5rem, 4.25rem);
+  --text-h2: clamp(1.75rem, 3.5vw + 0.25rem, 2.85rem);
+  --text-h3: clamp(1.25rem, 2vw + 0.2rem, 1.85rem);
+  --text-h4: clamp(1.1rem, 1.2vw + 0.1rem, 1.35rem);
+  --text-lead: clamp(1.125rem, 1.5vw + 0.2rem, 1.4rem);
+  --text-body: clamp(0.975rem, 0.5vw + 0.75rem, 1.075rem);
+  --text-small: clamp(0.825rem, 0.3vw + 0.7rem, 0.9rem);
+  --text-micro: 0.75rem;
+
+  /* Line Heights & Tracking */
+  --lh-tight: 1.05;
+  --lh-snug: 1.25;
+  --lh-base: 1.65;
+  --lh-loose: 1.8;
+
+  --tracking-tight: -0.04em;
+  --tracking-normal: -0.01em;
+  --tracking-wide: 0.06em;
+  --tracking-wider: 0.15em;
+
+  /* Spacing Scale */
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4.5rem;
+  --space-4xl: 6rem;
+  --space-section: clamp(5rem, 11vw, 10rem);
+
+  /* Containers */
+  --container-max: 1240px;
+  --container-narrow: 860px;
+  --container-editorial: 700px;
+
+  /* Border Radii */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-xl: 32px;
+  --radius-full: 9999px;
+
+  /* Easings & Durations */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 600ms;
+  --duration-cinematic: 1000ms;
+
+  /* Z-Indices */
+  --z-canvas: -1;
+  --z-base: 1;
+  --z-floating: 10;
+  --z-nav: 50;
+  --z-overlay: 90;
+  --z-modal: 100;
+  --z-cookie: 200;
+  --z-lag-glitch: 300;
+  --z-cursor: 999;
+}

@@ -1,0 +1,110 @@
+/* ==========================================================================
+   AAVASH REGMI — MASTER MONOCHROMATIC STYLESHEET
+   Central import hub connecting design tokens, resets, layouts, components & motion
+   ========================================================================== */
+
+/* Design Tokens & Core Setup */
+@import './tokens.css';
+@import './reset.css';
+@import './typography.css';
+@import './layout.css';
+@import './motion.css';
+
+/* Modular UI Components */
+@import './components/cookieConsent.css';
+@import './components/navigation.css';
+@import './components/hero.css';
+@import './components/about.css';
+@import './components/skills.css';
+@import './components/projects.css';
+@import './components/journey.css';
+@import './components/contact.css';
+@import './components/footer.css';
+
+/* ==========================================================================
+   EMOTIONAL REJECTION VIEW STYLES (FULL SCREEN COVER & LOCKED)
+   ========================================================================== */
+#rejected-message-view.rejected-message-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: #040406 !important;
+  z-index: 9999999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.4s ease !important;
+  overflow: hidden !important;
+}
+
+#rejected-message-view.rejected-message-overlay.is-visible {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+#rejected-message-view .rejected-message-content {
+  text-align: center !important;
+  color: #ffffff !important;
+  max-width: 650px !important;
+  padding: 2.5rem !important;
+  font-family: var(--font-sans, sans-serif) !important;
+}
+
+#rejected-message-view .rejected-message-content h1 {
+  font-size: clamp(1.8rem, 3vw, 2.8rem) !important;
+  font-weight: 800 !important;
+  margin-bottom: 1.25rem !important;
+  letter-spacing: -0.02em !important;
+  color: #ffffff !important;
+}
+
+#rejected-message-view .rejected-message-content p {
+  font-size: clamp(1rem, 1.5vw, 1.25rem) !important;
+  color: rgba(255, 255, 255, 0.75) !important;
+  margin-bottom: 0.75rem !important;
+  line-height: 1.6 !important;
+}
+
+/* ==========================================================================
+   GENTLE SYSTEM LAG (READABLE DISCO DANCE)
+   ========================================================================== */
+body.system-lag-mode {
+  animation: gentle-glitch 1.2s ease-in-out infinite !important;
+}
+
+body.system-lag-mode #rejected-message-view.rejected-message-overlay {
+  /* Locks the text card completely steady so the user can read it easily */
+  animation: none !important; 
+}
+
+@keyframes gentle-glitch {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  20% { transform: translate(-2px, 1px) rotate(-0.5deg); }
+  40% { transform: translate(2px, -1px) rotate(0.5deg); }
+  60% { transform: translate(-1px, -1px) rotate(0deg); }
+  80% { transform: translate(1px, 2px) rotate(0.25deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+/* ==========================================================================
+   BACKGROUND LOGO WATERMARK (NON-INTRUSIVE)
+   ========================================================================== */
+.bg-logo-watermark {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.95);
+  width: min(550px, 75vw);
+  height: auto;
+  z-index: -1; /* Keeps it strictly in the background */
+  opacity: 0.04; /* Subtle watermark effect */
+  pointer-events: none; /* CRITICAL: Ensures clicks pass right through it */
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.bg-logo-watermark.scrolled {
+  opacity: 0.08;
+  transform: translate(-50%, -50%) scale(1);
+}

@@ -1,0 +1,56 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      "@id": "https://aavashregmi.com.np/#person",
+      "name": "Aavash Regmi",
+      "givenName": "Aavash",
+      "familyName": "Regmi",
+      "url": "https://aavashregmi.com.np",
+      "email": "mailto:contact@aavashregmi.com.np",
+      "nationality": {
+        "@type": "Country",
+        "name": "Nepal"
+      },
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "Nepal"
+      },
+      "sameAs": [
+        "https://github.com/aavashregmi",
+        "https://www.linkedin.com/in/aavash-regmi-158732229/",
+        "https://instagram.com/aavash.cmd",
+        "https://x.com/Aavashregm85801"
+      ],
+      "knowsAbout": [
+        "Modern Web Architecture",
+        "Creative Engineering",
+        "Interface Design",
+        "Digital Experiences",
+        "Systems Thinking"
+      ],
+      "description": "Aavash Regmi is a creator and digital craftsman from Nepal exploring the intersection of intentional design, frontend engineering, and immersive digital experiences."
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://aavashregmi.com.np/#website",
+      "url": "https://aavashregmi.com.np",
+      "name": "Aavash Regmi — Personal Website & Digital Space",
+      "publisher": {
+        "@id": "https://aavashregmi.com.np/#person"
+      },
+      "inLanguage": "en-US"
+    },
+    {
+      "@type": "ProfilePage",
+      "@id": "https://aavashregmi.com.np/#profilepage",
+      "url": "https://aavashregmi.com.np",
+      "name": "Aavash Regmi",
+      "mainEntity": {
+        "@id": "https://aavashregmi.com.np/#person"
+      }
+    }
+  ]
+}
+

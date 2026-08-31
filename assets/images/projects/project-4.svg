@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="p4Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0b0f"/>
+      <stop offset="100%" stop-color="#040406"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" rx="16" fill="url(#p4Grad)"/>
+  <rect width="798" height="498" x="1" y="1" rx="15" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+  
+  <!-- CPU Gantt Chart & Process Queue (P1, P2, P3) -->
+  <g stroke="#ffffff" fill="none" stroke-width="1.2">
+    <!-- Queue Header -->
+    <text x="100" y="130" fill="#a1a1aa" font-family="monospace" font-size="12" letter-spacing="2">READY QUEUE (MLFQ)</text>
+    
+    <!-- Timeline Track -->
+    <rect x="100" y="160" width="600" height="70" rx="8" fill="#14151c" stroke="rgba(255,255,255,0.3)"/>
+    
+    <!-- Process Blocks -->
+    <rect x="100" y="160" width="160" height="70" fill="#222430" stroke="#ffffff" stroke-width="1.5"/>
+    <text x="180" y="200" text-anchor="middle" fill="#ffffff" font-family="monospace" font-size="14" font-weight="700">PID 101 [RUN]</text>
+    
+    <rect x="260" y="160" width="120" height="70" fill="#181a22" stroke="rgba(255,255,255,0.5)"/>
+    <text x="320" y="200" text-anchor="middle" fill="#a1a1aa" font-family="monospace" font-size="13">PID 102</text>
+    
+    <rect x="380" y="160" width="180" height="70" fill="#222430" stroke="#ffffff" stroke-width="1.5"/>
+    <text x="470" y="200" text-anchor="middle" fill="#ffffff" font-family="monospace" font-size="14" font-weight="700">PID 103 [RUN]</text>
+    
+    <rect x="560" y="160" width="140" height="70" fill="#181a22" stroke="rgba(255,255,255,0.5)"/>
+    <text x="630" y="200" text-anchor="middle" fill="#a1a1aa" font-family="monospace" font-size="13">PID 101</text>
+
+    <!-- Context Switch Markers -->
+    <line x1="260" y1="150" x2="260" y2="240" stroke="#ff3366" stroke-width="2" stroke-dasharray="3 3"/>
+    <line x1="380" y1="150" x2="380" y2="240" stroke="#ff3366" stroke-width="2" stroke-dasharray="3 3"/>
+    <line x1="560" y1="150" x2="560" y2="240" stroke="#ff3366" stroke-width="2" stroke-dasharray="3 3"/>
+    <text x="320" y="270" text-anchor="middle" fill="#ff3366" font-family="monospace" font-size="11">CONTEXT SWITCH Δt</text>
+  </g>
+  
+  <text x="400" y="420" text-anchor="middle" fill="#ffffff" font-family="monospace" font-size="13" letter-spacing="3">VIRTUAL MICROKERNEL &amp; PROCESS SCHEDULER</text>
+</svg>

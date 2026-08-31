@@ -1,0 +1,26 @@
+# robots.txt for https://aavashregmi.com.np
+User-agent: *
+Allow: /
+
+# Allow AI crawlers to discover identity and portfolio information
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+# Sitemap definition
+Sitemap: https://aavashregmi.com.np/sitemap.xml
+

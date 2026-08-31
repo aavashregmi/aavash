@@ -1,0 +1,166 @@
+/* ==========================================================================
+   COMPONENT: FOOTER & LIVE KATHMANDU CLOCK
+   ========================================================================== */
+
+.site-footer {
+  position: relative;
+  padding-top: var(--space-3xl);
+  padding-bottom: var(--space-2xl);
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+
+.footer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--space-xl);
+  margin-bottom: var(--space-2xl);
+}
+
+.footer-identity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  max-width: 380px;
+}
+
+.footer-name {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.footer-tagline {
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+  line-height: var(--lh-base);
+}
+
+/* Local Time Widget */
+.footer-time-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 0.75rem 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+}
+
+.time-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  box-shadow: 0 0 10px var(--accent-cyan);
+}
+
+.time-info {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.time-label {
+  color: var(--text-muted);
+}
+
+.time-value {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.time-zone {
+  color: var(--accent-cyan);
+  font-size: 0.75rem;
+}
+
+/* Social Media Icons Grid */
+.footer-socials {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.social-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  transition: all var(--duration-fast);
+  position: relative;
+}
+
+.social-icon-btn svg {
+  width: 20px;
+  height: 20px;
+  transition: transform var(--duration-fast);
+}
+
+.social-icon-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--accent-cyan);
+  background: var(--bg-surface);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.2);
+}
+
+.social-icon-btn:hover svg {
+  transform: scale(1.1);
+}
+
+/* Footer Bottom Bar */
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  padding-top: var(--space-xl);
+  border-top: 1px solid var(--border-hairline);
+  font-size: var(--text-small);
+  color: var(--text-muted);
+}
+
+.footer-copy {
+  font-family: var(--font-mono);
+}
+
+.btn-back-top {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.825rem;
+  transition: color var(--duration-fast);
+}
+
+.btn-back-top:hover {
+  color: var(--accent-cyan);
+}
+
+@media (max-width: 768px) {
+  .footer-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+

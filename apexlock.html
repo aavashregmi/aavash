@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ApexLock // Secure Focus & Lockdown Utility</title>
+  <style>
+    :root {
+      --bg: #040406;
+      --card-bg: #0a0a0f;
+      --border: #1a1a24;
+      --accent: #ffffff;
+      --text: #ffffff;
+      --text-muted: rgba(255, 255, 255, 0.6);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-sans, system-ui, sans-serif); }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+    }
+
+    /* PWA Install Banner Overlay */
+    #pwa-install-modal {
+      position: fixed; inset: 0; background: rgba(4,4,6,0.95); z-index: 10000;
+      display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+    }
+    .modal-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px;
+      padding: 2.5rem; max-width: 450px; width: 100%; text-align: center;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.9);
+    }
+    .modal-card h2 { font-size: 1.5rem; margin-bottom: 1rem; font-weight: 800; }
+    .modal-card p { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.6; }
+    
+    .btn {
+      background: #ffffff; color: #000000; border: none; padding: 0.85rem 1.75rem;
+      font-weight: 700; border-radius: 8px; cursor: pointer; transition: opacity 0.2s;
+      width: 100%; font-size: 1rem;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-secondary { background: transparent; color: #ffffff; border: 1px solid var(--border); margin-top: 0.75rem; }
+
+    /* Dashboard & Session UI */
+    .app-container { width: 100%; max-width: 700px; padding: 2rem; display: none; }
+    .app-container.active { display: block; }
+    
+    .setup-panel, .active-panel { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; }
+    .active-panel { display: none; text-align: center; }
+
+    .form-group { margin-bottom: 1.5rem; text-align: left; }
+    .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem; letter-spacing: 1px; }
+    .form-control {
+      width: 100%; background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+      padding: 0.85rem 1rem; color: #fff; border-radius: 8px; font-size: 1rem;
+    }
+    
+    /* Timer & Progress Bar */
+    .timer-display { font-size: 4rem; font-weight: 900; letter-spacing: -2px; margin: 1.5rem 0; font-family: monospace; }
+    .progress-bar-container { width: 100%; height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; margin-bottom: 2rem; }
+    .progress-bar-fill { height: 100%; width: 0%; background: #ffffff; transition: width 1s linear; }
+
+    /* Security PIN Modal */
+    #pin-modal {
+      position: fixed; inset: 0; background: rgba(4,4,6,0.98); z-index: 20000;
+      display: none; align-items: center; justify-content: center; padding: 1.5rem;
+    }
+    .pin-dots { display: flex; gap: 12px; justify-content: center; margin: 1.5rem 0; }
+    .pin-dot { width: 14px; height: 14px; border: 2px solid var(--border); border-radius: 50%; transition: background 0.2s; }
+    .pin-dot.filled { background: #ffffff; border-color: #ffffff; }
+    .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 280px; margin: 0 auto; }
+    .key-btn { background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: #fff; padding: 1rem; font-size: 1.25rem; font-weight: 700; border-radius: 8px; cursor: pointer; }
+    .key-btn:hover { background: rgba(255,255,255,0.08); }
+
+    .device-badge { display: inline-block; background: rgba(255,255,255,0.05); border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 1.5rem; letter-spacing: 1px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+  <!-- PWA Add to Home Screen Prompt -->
+  <div id="pwa-install-modal">
+    <div class="modal-card">
+      <h2>🛡️ Secure Environment Required</h2>
+      <p>To eliminate 100% of distractions and run ApexLock in true Bluebook lockdown mode, this tool requires full standalone permission.</p>
+      <button class="btn" id="btn-pwa-proceed">Initialize Lockdown Engine</button>
+      <button class="btn btn-secondary" onclick="window.location.href='index.html'">Return to Portfolio</button>
+    </div>
+  </div>
+
+  <!-- Main App Interface -->
+  <div class="app-container" id="app-main">
+    
+    <!-- Setup Panel -->
+    <div class="setup-panel" id="setup-panel">
+      <div style="text-align: center;">
+        <span class="device-badge" id="detected-device">Detecting Device...</span>
+        <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem;">ApexLock Focus Session</h1>
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">Zero-distraction sandbox. No minimizing or switching apps until timer completion without solving the security PIN.</p>
+      </div>
+
+      <div class="form-group">
+        <label>Session Duration (Minutes)</label>
+        <input type="number" id="input-duration" class="form-control" value="25" min="1" max="180">
+      </div>
+
+      <div class="form-group">
+        <label>Focus Soundtrack (Global Streams)</label>
+        <select id="input-song" class="form-control">
+          <option value="https://www.youtube.com/embed/WgTMeICssXY?autoplay=1">English Ambient — Ruth B. (Dandelions)</option>
+          <option value="https://www.youtube.com/embed/EOg-zJ5J5XA?autoplay=1">Nepali Lyrical — Teenpatey</option>
+          <option value="https://www.youtube.com/embed/YNeG8HIySeM?autoplay=1">Hindi Chill — Lo-Fi Session</option>
+          <option value="https://www.youtube.com/embed/_P6SaLC3si8?autoplay=1">Spanish Acoustic — Carla Morrison (Disfruto)</option>
+        </select>
+      </div>
+
+      <button class="btn" id="btn-start-session">Lockdown & Start Session</button>
+    </div>
+
+    <!-- Active Locked Panel -->
+    <div class="active-panel" id="active-panel">
+      <span class="device-badge">🔒 Lockdown Active — Zero Distractions</span>
+      <div class="timer-display" id="timer-text">25:00</div>
+      
+      <div class="progress-bar-container">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+
+      <p id="session-status-text" style="color: var(--text-muted); margin-bottom: 2rem;">Focus in progress. Do not attempt to minimize or switch tabs.</p>
+
+      <!-- Hidden Audio Stream Frame -->
+      <div id="audio-frame-container" style="display:none;"></div>
+
+      <button class="btn btn-secondary" id="btn-trigger-exit" style="max-width: 250px; margin: 0 auto;">Attempt Early Exit</button>
+    </div>
+
+  </div>
+
+  <!-- Security PIN Challenge Modal (Math Quiz PIN: 7446) -->
+  <div id="pin-modal">
+    <div class="modal-card">
+      <h2 style="color: #ff4d4d;">⚠️ Security Override Required</h2>
+      <p>You attempted to minimize or exit the secure session!<br>Solve the math challenge to unlock:</p>
+      
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-family: monospace; font-size: 0.9rem; text-align: left;">
+        🔐 4-Digit Math PIN Quiz:<br>
+        • 3 + 4 = ? <br>
+        • 12 ÷ 3 = ? <br>
+        • 9 − 5 = ? <br>
+        • 2 × 3 = ? <br>
+        <b>PIN =?</b>
+      </div>
+
+      <div class="pin-dots">
+        <div class="pin-dot" id="dot-0"></div>
+        <div class="pin-dot" id="dot-1"></div>
+        <div class="pin-dot" id="dot-2"></div>
+        <div class="pin-dot" id="dot-3"></div>
+      </div>
+
+      <div class="keypad">
+        <button class="key-btn" onclick="pressKey(1)">1</button>
+        <button class="key-btn" onclick="pressKey(2)">2</button>
+        <button class="key-btn" onclick="pressKey(3)">3</button>
+        <button class="key-btn" onclick="pressKey(4)">4</button>
+        <button class="key-btn" onclick="pressKey(5)">5</button>
+        <button class="key-btn" onclick="pressKey(6)">6</button>
+        <button class="key-btn" onclick="pressKey(7)">7</button>
+        <button class="key-btn" onclick="pressKey(8)">8</button>
+        <button class="key-btn" onclick="pressKey(9)">9</button>
+        <button class="key-btn" style="grid-column: span 2;" onclick="pressKey(0)">0</button>
+        <button class="key-btn" style="color: #ff4d4d;" onclick="clearPin()">⌫</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 1. Device Detection
+    function detectDevice() {
+      const ua = navigator.userAgent;
+      if (/Mobi|Android/i.test(ua)) return '📱 Mobile Phone';
+      if (/Tablet|iPad/i.test(ua)) return '📱 Tablet / iPad';
+      if (/VR|Oculus|Quest|VisionOS/i.test(ua)) return '🥽 VR Headset';
+      if (/Macintosh|Windows|Linux/i.test(ua)) return '💻 Desktop / Laptop PC';
+      return '🖥️ Workstation';
+    }
+    document.getElementById('detected-device').innerText = `Detected: ${detectDevice()}`;
+
+    // 2. PWA / Fullscreen Initialization Flow
+    document.getElementById('btn-pwa-proceed').addEventListener('click', () => {
+      document.getElementById('pwa-install-modal').style.display = 'none';
+      document.getElementById('app-main').classList.add('active');
+      
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(err => console.log(err));
+      }
+    });
+
+    // 3. Custom Session Timer & Soundtrack Integration
+    let totalSeconds = 0;
+    let remainingSeconds = 0;
+    let timerInterval = null;
+    let enteredPin = '';
+    const correctPin = '7446';
+
+    document.getElementById('btn-start-session').addEventListener('click', () => {
+      // Grabs whatever custom number the user typed in (defaulting to 25 if empty/invalid)
+      const userMins = parseInt(document.getElementById('input-duration').value);
+      const mins = (!isNaN(userMins) && userMins > 0) ? userMins : 25;
+      
+      totalSeconds = mins * 60;
+      remainingSeconds = totalSeconds;
+
+      // Lock Setup, Show Active Lockdown UI
+      document.getElementById('setup-panel').style.display = 'none';
+      document.getElementById('active-panel').style.display = 'block';
+
+      // Load and Autoplay Selected YouTube Music Track
+      const selectedSongUrl = document.getElementById('input-song').value;
+      const audioContainer = document.getElementById('audio-frame-container');
+      audioContainer.style.display = 'block'; 
+      audioContainer.innerHTML = `<iframe width="300" height="80" src="${selectedSongUrl}" title="Focus Soundtrack" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+
+      updateTimerDisplay(); // Render initial state immediately
+      startTimerLoop();
+    });
+
+    function startTimerLoop() {
+      timerInterval = setInterval(() => {
+        if (remainingSeconds > 0) {
+          remainingSeconds--;
+          updateTimerDisplay();
+        } else {
+          clearInterval(timerInterval);
+          alert('🎉 Custom Session Completed Successfully! Lockdown released.');
+          window.location.href = 'index.html';
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      // Format dynamically: handles hours if duration is >= 60 minutes
+      let displayString = '';
+      if (totalSeconds >= 3600) {
+        const h = Math.floor(remainingSeconds / 3600);
+        const m = Math.floor((remainingSeconds % 3600) / 60).toString().padStart(2, '0');
+        const s = (remainingSeconds % 60).toString().padStart(2, '0');
+        displayString = `${h}:${m}:${s}`;
+      } else {
+        const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
+        const s = (remainingSeconds % 60).toString().padStart(2, '0');
+        displayString = `${m}:${s}`;
+      }
+      
+      document.getElementById('timer-text').innerText = displayString;
+
+      const progressPercent = ((totalSeconds - remainingSeconds) / totalSeconds) * 100;
+      document.getElementById('progress-fill').style.width = `${progressPercent}%`;
+    }
+
+    // 4. Anti-Minimize / Tab Switch Security Monitor
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && document.getElementById('active-panel').style.display === 'block') {
+        triggerSecurityLock();
+      }
+    });
+
+    window.addEventListener('blur', () => {
+      if (document.getElementById('active-panel').style.display === 'block') {
+        triggerSecurityLock();
+      }
+    });
+
+    document.getElementById('btn-trigger-exit').addEventListener('click', triggerSecurityLock);
+
+    function triggerSecurityLock() {
+      document.getElementById('pin-modal').style.display = 'flex';
+      enteredPin = '';
+      updatePinDots();
+    }
+
+    // 5. PIN Keypad Handler
+    function pressKey(num) {
+      if (enteredPin.length < 4) {
+        enteredPin += num;
+        updatePinDots();
+        if (enteredPin.length === 4) {
+          setTimeout(verifyPin, 200);
+        }
+      }
+    }
+
+    function clearPin() {
+      enteredPin = '';
+      updatePinDots();
+    }
+
+    function updatePinDots() {
+      for (let i = 0; i < 4; i++) {
+        const dot = document.getElementById(`dot-${i}`);
+        if (i < enteredPin.length) {
+          dot.classList.add('filled');
+        } else {
+          dot.classList.remove('filled');
+        }
+      }
+    }
+
+    function verifyPin() {
+      if (enteredPin === correctPin) {
+        alert('🔓 Security PIN Verified! Exiting session.');
+        window.location.href = 'index.html';
+      } else {
+        alert('❌ Incorrect Math PIN! Try again (Hint: 7446)');
+        enteredPin = '';
+        updatePinDots();
+      }
+    }
+  </script>
+</body>
+</html>

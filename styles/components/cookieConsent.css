@@ -1,0 +1,298 @@
+/* ==========================================================================
+   COMPONENT: COOKIE CONSENT HUD & INTERACTIVE LAG SYSTEM
+   Luxury glass popup with interactive Easter Egg on rejection
+   ========================================================================== */
+
+/* Cookie Modal Overlay */
+.cookie-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-cookie);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(4, 4, 6, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 500ms var(--ease-out-quint), visibility 500ms;
+}
+
+.cookie-modal-overlay.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Cookie HUD Box */
+.cookie-hud-card {
+  width: 100%;
+  max-width: 520px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-xl);
+  padding: clamp(1.75rem, 4vw, 2.5rem);
+  box-shadow: 0 0 80px rgba(255, 255, 255, 0.12), var(--shadow-lg);
+  transform: translateY(30px) scale(0.96);
+  transition: transform 600ms var(--ease-spring);
+  position: relative;
+  overflow: hidden;
+}
+
+.cookie-modal-overlay.is-active .cookie-hud-card {
+  transform: translateY(0) scale(1);
+}
+
+.cookie-hud-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #ffffff, transparent);
+}
+
+.cookie-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  color: var(--accent-white);
+  padding: 0.25rem 0.75rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  margin-bottom: 1.25rem;
+}
+
+.cookie-title {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.03em;
+}
+
+.cookie-text {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+}
+
+.cookie-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.btn-cookie-accept-all {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.95rem 1.5rem;
+  background: #ffffff;
+  color: #000000;
+  font-weight: 800;
+  font-size: 0.95rem;
+  border-radius: var(--radius-full);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.35);
+}
+
+.btn-cookie-accept-all:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 45px rgba(255, 255, 255, 0.6);
+}
+
+.cookie-btn-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.btn-cookie-accept {
+  padding: 0.8rem 1.25rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  transition: all 150ms ease;
+  text-align: center;
+}
+
+.btn-cookie-accept:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: #ffffff;
+}
+
+.btn-cookie-reject {
+  padding: 0.8rem 1.25rem;
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 0.85rem;
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-full);
+  transition: all 150ms ease;
+  text-align: center;
+}
+
+.btn-cookie-reject:hover {
+  color: var(--accent-rose);
+  border-color: var(--accent-rose);
+  background: rgba(255, 51, 102, 0.08);
+}
+
+/* ==========================================================================
+   SIMULATED SYSTEM LAG & GLITCH OVERLAY (ON COOKIE REJECT)
+   ========================================================================== */
+
+/* Glitch animation */
+@keyframes screenGlitch {
+  0% { transform: translate(0); filter: drop-shadow(0 0 0 transparent); }
+  15% { transform: translate(-8px, 4px) skewX(4deg); filter: contrast(200%) hue-rotate(90deg); }
+  30% { transform: translate(8px, -4px) skewY(-3deg); filter: invert(30%); }
+  45% { transform: translate(-4px, -8px); filter: contrast(180%); }
+  60% { transform: translate(6px, 6px) skewX(-4deg); }
+  75% { transform: translate(-6px, 2px); }
+  100% { transform: translate(0); }
+}
+
+@keyframes slowFrameDrop {
+  0%, 100% { opacity: 0.95; }
+  50% { opacity: 0.3; }
+}
+
+/* When in Lag Mode */
+body.system-lag-mode {
+  animation: screenGlitch 0.4s infinite steps(2) !important;
+  cursor: wait !important;
+  user-select: none !important;
+}
+
+body.system-lag-mode * {
+  animation-duration: 4s !important;
+  transition-duration: 2s !important;
+}
+
+.reject-audio-host,
+#hidden-background-music {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+  left: -9999px;
+  top: -9999px;
+}
+
+.reject-audio-host iframe,
+#hidden-background-music iframe {
+  width: 1px !important;
+  height: 1px !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.lag-glitch-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-lag-glitch);
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(12px) grayscale(100%);
+  -webkit-backdrop-filter: blur(12px) grayscale(100%);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+body.system-lag-mode .lag-glitch-overlay {
+  display: flex;
+}
+
+.lag-terminal-box {
+  max-width: 600px;
+  background: #000000;
+  border: 1px solid var(--accent-rose);
+  box-shadow: 0 0 50px rgba(255, 51, 102, 0.4);
+  border-radius: var(--radius-md);
+  padding: 2rem;
+  font-family: var(--font-mono);
+  color: #ff3366;
+  text-align: left;
+}
+
+.lag-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lag-log {
+  font-size: 0.85rem;
+  line-height: 1.8;
+  color: #fca5a5;
+  margin-bottom: 2rem;
+}
+
+.btn-emergency-restore {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: #ffffff;
+  color: #000000;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 0.95rem;
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 40px #ffffff;
+  cursor: pointer;
+  animation: slowFrameDrop 1s infinite alternate;
+}
+
+.btn-emergency-restore:hover {
+  transform: scale(1.05);
+}
+
+/* Celebratory Shockwave Burst on Accept */
+.shockwave-burst {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 0%, rgba(255, 255, 255, 0.8) 30%, transparent 70%);
+  transform: translate(-50%, -50%) scale(0);
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 1;
+  transition: transform 0.8s var(--ease-out-expo), opacity 0.8s ease;
+}
+
+.shockwave-burst.is-exploding {
+  transform: translate(-50%, -50%) scale(120);
+  opacity: 0;
+}
+

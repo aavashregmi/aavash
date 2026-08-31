@@ -1,0 +1,122 @@
+/* ==========================================================================
+   LAYOUT, GRIDS & CONTAINERS
+   ========================================================================== */
+
+.site-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  z-index: var(--z-base);
+}
+
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: clamp(1.25rem, 4vw, 3rem);
+  padding-right: clamp(1.25rem, 4vw, 3rem);
+}
+
+.container-narrow {
+  width: 100%;
+  max-width: var(--container-narrow);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: clamp(1.25rem, 4vw, 3rem);
+  padding-right: clamp(1.25rem, 4vw, 3rem);
+}
+
+.container-editorial {
+  width: 100%;
+  max-width: var(--container-editorial);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: clamp(1.25rem, 4vw, 3rem);
+  padding-right: clamp(1.25rem, 4vw, 3rem);
+}
+
+.section {
+  position: relative;
+  padding-top: var(--space-section);
+  padding-bottom: var(--space-section);
+}
+
+.section-header {
+  margin-bottom: clamp(2.5rem, 6vw, 4.5rem);
+}
+
+.section-header .eyebrow {
+  margin-bottom: var(--space-sm);
+}
+
+.section-header h2 {
+  font-size: var(--text-h2);
+  margin-bottom: var(--space-md);
+}
+
+.section-header p {
+  font-size: var(--text-lead);
+  color: var(--text-secondary);
+  max-width: 620px;
+}
+
+/* Atmospheric Background Canvas */
+#ambient-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: var(--z-canvas);
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* Glow Elements */
+.ambient-glow {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.08) 0%, rgba(129, 140, 248, 0.03) 40%, transparent 70%);
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.glow-top {
+  top: -150px;
+  right: -100px;
+}
+
+.glow-mid {
+  top: 40%;
+  left: -200px;
+  background: radial-gradient(circle, rgba(192, 132, 252, 0.08) 0%, transparent 70%);
+}
+
+.glow-bottom {
+  bottom: 10%;
+  right: -150px;
+}
+
+/* Flex / Grid Helpers */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(1.5rem, 4vw, 3rem);
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(1.25rem, 3vw, 2rem);
+}
+
+@media (max-width: 900px) {
+  .grid-2, .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
