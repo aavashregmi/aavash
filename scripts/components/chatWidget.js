@@ -1,23 +1,43 @@
 // scripts/components/chatWidget.js
 
 export function initPortfolioChat() {
-  // 1. Select your chat elements from the DOM
-  const chatForm = document.querySelector('#chat-form'); // or your form/input selector
-  const chatInput = document.querySelector('#chat-input');
-  const chatMessages = document.querySelector('#chat-messages');
+  const toggleBtn = document.getElementById('chat-toggle-btn');
+  const chatWindow = document.getElementById('chat-window');
+  const closeBtn = document.getElementById('chat-close-btn');
+  const chatInput = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('chat-send-btn');
+  const chatMessages = document.getElementById('chat-messages');
 
-  // If your chat elements don't exist on the page, safely return
-  if (!chatInput) return;
+  if (!toggleBtn || !chatWindow) return;
 
-  // 2. Your message handling logic
-  async function handleSendMessage(userMessage) {
+  // 1. Toggle open/close on button click
+  toggleBtn.addEventListener('click', () => {
+    const isHidden = chatWindow.style.display === 'none' || chatWindow.style.display === '';
+    chatWindow.style.display = isHidden ? 'flex' : 'none';
+    if (isHidden && chatInput) chatInput.focus();
+  });
+
+  // 2. Close button handler
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      chatWindow.style.display = 'none';
+    });
+  }
+
+  // 3. Message sending logic
+  async function handleSend() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+
+    // Append user message
+    appendMessage('user', text);
+    chatInput.value = '';
+
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ message: userMessage })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text })
       });
 
       const data = await response.json();
@@ -26,32 +46,41 @@ export function initPortfolioChat() {
         throw new Error(data.error || 'Something went wrong');
       }
 
-      // Append AI reply to your chat UI
-      appendMessageToChat('assistant', data.reply);
+      // Append AI reply
+      appendMessage('assistant', data.reply);
     } catch (error) {
       console.error(error);
-      appendMessageToChat('assistant', 'Error connecting to AI assistant.');
+      appendMessage('assistant', 'Error connecting to AI assistant.');
     }
   }
 
-  // Helper to append messages to your UI (adjust selectors to match your HTML)
-  function appendMessageToChat(role, text) {
+  // Helper to add messages to UI
+  function appendMessage(role, text) {
     if (!chatMessages) return;
     const msgDiv = document.createElement('div');
-    msgDiv.className = `chat-message ${role}`;
+    
+    if (role === 'user') {
+      msgDiv.style.cssText = 'background: #238636; padding: 8px 12px; border-radius: 8px; align-self: flex-end; max-width: 85%; color: #fff;';
+    } else {
+      msgDiv.style.cssText = 'background: #21262d; padding: 8px 12px; border-radius: 8px; align-self: flex-start; max-width: 85%; color: #c9d1d9;';
+    }
+    
     msgDiv.textContent = text;
     chatMessages.appendChild(msgDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
-  // Attach event listener if form exists
-  if (chatForm && chatInput) {
-    chatForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const text = chatInput.value.trim();
-      if (!text) return;
-      appendMessageToChat('user', text);
-      chatInput.value = '';
-      handleSendMessage(text);
+  // 4. Event listeners for Send button & Enter key
+  if (sendBtn) {
+    sendBtn.addEventListener('click', handleSend);
+  }
+
+  if (chatInput) {
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleSend();
+      }
     });
   }
 }
