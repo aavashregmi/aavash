@@ -1,15 +1,28 @@
 export default async function handler(req, res) {
+  // 1. Set explicit CORS headers for custom domain routing
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  );
+
+  // Handle browser preflight OPTIONS request
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { message } = req.body;
+  const { message } = req.body || {};
 
   if (!message) {
     return res.status(400).json({ error: 'Message is required' });
   }
 
-  // Updated self-contained website data map
   const websiteContext = `
   - Name: Aavash Regmi
   - Age: 18 years old
@@ -61,6 +74,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ reply });
   } catch (error) {
     console.error('Groq API Error:', error);
-    return res.status(500).json({ error: 'Error connecting to AI assistant.' });
+    return res.status(500).json({ error: error.message || 'Error connecting to AI assistant.' });
   }
 }
