@@ -108,3 +108,17 @@ body.system-lag-mode #rejected-message-view.rejected-message-overlay {
   opacity: 0.08;
   transform: translate(-50%, -50%) scale(1);
 }
+
+/* Automatically adjusts only when viewed on mobile devices */
+@media (max-width: 768px) {
+  #chat-window {
+    position: fixed !important;
+    bottom: 15px !important;
+    right: 15px !important;
+    left: auto !important; /* Prevents it from stretching left */
+    width: 320px !important; /* Compact width like desktop */
+    max-width: calc(100vw - 30px) !important; /* Safety cap for tiny phones */
+    height: 420px !important;
+    max-height: 65vh !important;
+  }
+}
