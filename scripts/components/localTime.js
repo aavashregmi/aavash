@@ -1,27 +1,41 @@
 import { CONFIG } from '../config.js';
 
 export function initLocalTime() {
-  const clockElements = document.querySelectorAll('[data-local-time]');
+  // Targets your exact HTML attribute: [data-timezone]
+  const clockElements = document.querySelectorAll('[data-timezone]');
 
   const updateClocks = () => {
-    try {
-      const options = {
-        timeZone: CONFIG.location.timeZone,
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true
-      };
+    const now = new Date();
 
-      const formatter = new Intl.DateTimeFormat([], options);
-      const now = new Date();
-      
-      clockElements.forEach(clockEl => {
+    // 1. Update all 4 world clock elements based on their data-timezone attribute
+    clockElements.forEach(clockEl => {
+      try {
+        const timeZone = clockEl.getAttribute('data-timezone');
+        const options = {
+          timeZone: timeZone,
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true
+        };
+
+        const formatter = new Intl.DateTimeFormat([], options);
         clockEl.textContent = formatter.format(now).toLowerCase();
-      });
+      } catch (err) {
+        clockEl.textContent = "--:--:-- --";
+      }
+    });
 
-      // --- TIME GREETING LOGIC ---
-      const hours24 = now.getHours();
+    // 2. --- UNTOUCHED TIME GREETING LOGIC ---
+    try {
+      const options24 = {
+        timeZone: CONFIG.location.timeZone,
+        hour: 'numeric',
+        hour12: false
+      };
+      const formatter24 = new Intl.DateTimeFormat([], options24);
+      const hours24 = parseInt(formatter24.format(now), 10);
+
       let greeting = "";
       let icon = "";
 
@@ -43,27 +57,13 @@ export function initLocalTime() {
       const greetingIconEl = document.getElementById("time-greeting-icon");
       if (greetingTextEl) greetingTextEl.textContent = greeting;
       if (greetingIconEl) greetingIconEl.textContent = icon;
-      // ---------------------------
 
     } catch (err) {
-      // Fallback calculation for Kathmandu if Intl fails
-      const now = new Date();
+      // Fallback greeting calculation for Kathmandu if Intl fails
       const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
       const targetDate = new Date(utc + (3600000 * CONFIG.location.utcOffsetHours));
-
-      let hours = targetDate.getHours();
-      const minutes = String(targetDate.getMinutes()).padStart(2, '0');
-      const seconds = String(targetDate.getSeconds()).padStart(2, '0');
-      const ampm = hours >= 12 ? 'pm' : 'am';
-      hours = hours % 12;
-      hours = hours ? hours : 12;
-
-      clockElements.forEach(clockEl => {
-        clockEl.textContent = `${String(hours).padStart(2, '0')}:${minutes}:${seconds} ${ampm}`;
-      });
-
-      // --- FALLBACK TIME GREETING LOGIC ---
       const hours24Fallback = targetDate.getHours();
+      
       let greeting = "";
       let icon = "";
 
@@ -85,7 +85,6 @@ export function initLocalTime() {
       const greetingIconEl = document.getElementById("time-greeting-icon");
       if (greetingTextEl) greetingTextEl.textContent = greeting;
       if (greetingIconEl) greetingIconEl.textContent = icon;
-      // ------------------------------------
     }
   };
 
