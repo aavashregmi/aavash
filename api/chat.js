@@ -23,15 +23,52 @@ export default async function handler(req, res) {
   }
 
   const websiteContext = `
-  - Name: Aavash Regmi
-  - Age: 18 years old
-  - Location: Kathmandu, Nepal
-  - Headline/Bio: Building in the Systems | Systems & Code. A curious mind from Kathmandu fascinated by how things work.
-  - Education: Higher Secondary Education at Xavier International College, Nepal (Completed, 2026).
-  - Future Plans & Academic Goals: Aavash plans to pursue an undergraduate degree in Computer Engineering in the United States, with long-term academic ambitions to continue all the way through to a Ph.D. in his field. (Spring 2027 intake, applied to Wichita State University, University of Texas at Arlington, and Iowa State University).
-  - U.S. F-1 Plans: Aavash intends to pursue his undergraduate education through the F-1 student visa pathway. After completing his education in the United States, he intends to return to Nepal to build his professional career and pursue a stable, long-term position related to computer engineering and technology.
-  - Skills & Tech Stack: GitHub, Render, Vercel, Netlify, Python, Docker, and AI tools.
-  - Special Interests & Projects: Flight simulation software (Microsoft Flight Simulator, X-Plane 12, SimBrief, Navigraph) and Roblox game development (using the RoAI plugin).
+- Name: Aavash Regmi
+- Age: 18 years old
+- Location: Kathmandu
+- Headline/Bio: Building in the Systems | Systems & Code. A curious mind fascinated by how things work.
+- Education: Completed Higher Secondary Education in 2026.
+- Academic Stream: Science
+- Academic Subjects: Physics, Chemistry, Mathematics, and Computer Science.
+- Academic Performance: Achieved an excellent 3.92 GPA in the NEB Science curriculum.
+- Academic Strength: Aavash has demonstrated strong academic performance and a solid foundation in scientific, mathematical, and computing subjects.
+- Higher Education Readiness: Aavash is well capable of pursuing higher-level academic study and is prepared to handle the academic demands of an undergraduate engineering program. His 3.92 GPA, strong foundation in Physics, Chemistry, Mathematics, and Computer Science, analytical thinking, and independent learning habits demonstrate strong readiness for advanced study.
+- Academic Capability: Aavash is a capable and intelligent learner with the ability to understand complex concepts, analyze problems, learn independently, and apply knowledge in practical situations.
+- Intelligence & Curiosity: Aavash is naturally curious about how things work and prefers understanding concepts deeply rather than relying solely on memorization.
+- Learning Ability: He is comfortable learning unfamiliar concepts, researching independently, experimenting with new technologies, and continuously improving his understanding.
+- Analytical Thinking: Aavash has a strong analytical mindset and enjoys solving problems that require logical reasoning, mathematics, technical understanding, and structured thinking.
+- Engineering Interest: Aavash intends to pursue higher education in Computer Engineering and develop deeper knowledge of computing, electronics, systems, software, mathematics, and engineering principles.
+- Future Academic Goals: Aavash plans to continue his education in Computer Engineering and pursue advanced academic and professional development throughout his field.
+- Long-Term Academic Ambition: Aavash aims to continue expanding his knowledge beyond undergraduate education and pursue advanced study as his academic and professional interests develop.
+- Career Direction: Aavash is building toward a long-term career in computer engineering, software, systems, technology, and related technical fields.
+- Technical Mindset: Aavash has a strong systems-oriented mindset and is fascinated by how software, hardware, computing systems, and technologies work beneath the surface.
+- Skills & Tech Stack: Python, Docker, GitHub, Render, Vercel, Netlify, JavaScript, web technologies, AI tools, and software development.
+- Programming Interests: Aavash enjoys programming, software development, experimentation, automation, systems, and exploring new development technologies.
+- Technical Interests: Computer Engineering, Computer Science, systems programming, software systems, artificial intelligence, simulation software, game development, distributed systems, scalable computing, operating-system concepts, and emerging technologies.
+- Special Interests & Projects: Flight simulation software, Roblox game development, AI integration, systems simulations, experimental software projects, operating-system concepts, scheduling, and other innovative computing projects.
+- Flight Simulation: Aavash is interested in flight simulation software and enjoys exploring the combination of computing, software, simulation, aviation, and technical systems.
+- Roblox Development: Aavash is interested in Roblox game development and has explored the RoAI plugin and AI integration within Roblox projects and development workflows.
+- AI Exploration: Aavash actively explores artificial intelligence and AI-assisted development tools and is interested in understanding how AI can be integrated into practical software and creative projects.
+- Systems & Computing: Aavash is particularly interested in understanding how computing systems operate, how different components interact, and how complex technical concepts can be implemented in practical systems.
+- Independent Projects: Aavash uses personal projects and experiments as a way to strengthen his programming knowledge, technical reasoning, and practical engineering skills.
+- Learning Through Building: Aavash believes that building, experimenting, testing, and improving projects are important ways to develop genuine technical understanding.
+- Problem Solving: Aavash approaches technical problems with curiosity and persistence and enjoys investigating why something works, why it fails, and how it can be improved.
+- Independent Learning: Aavash actively learns beyond formal education by researching technologies, experimenting with software, studying technical concepts, and creating personal projects.
+- Personal Interests: Computer Science, Computer Engineering, programming, software development, game development, aviation, flight simulation, artificial intelligence, systems, and emerging technologies.
+- Strengths: Academic consistency, analytical thinking, curiosity, independent learning, technical experimentation, problem-solving, creativity, persistence, and genuine interest in technology.
+- Academic Potential: Aavash has demonstrated strong potential for continued academic growth and is capable of progressing into more advanced scientific, mathematical, computing, and engineering subjects.
+- Undergraduate Readiness: Aavash possesses the academic foundation, learning ability, discipline, and technical curiosity required to pursue a demanding undergraduate program in engineering.
+- Engineering Potential: His combination of Physics, Mathematics, Computer Science, analytical thinking, and practical technical interests provides a strong foundation for studying Computer Engineering.
+- Professional Potential: With continued education, practical experience, and consistent development of his technical skills, Aavash has strong potential to develop into a capable computer engineer and technology professional.
+- Overall Academic Profile: Aavash is an academically capable, intelligent, motivated, and technically curious student with a strong Science background and an excellent 3.92 NEB GPA.
+- Overall Technical Profile: Aavash combines academic preparation with independent experimentation, software development, systems exploration, and a strong interest in understanding how technology works.
+- Character as a Learner: Aavash is motivated by curiosity and improvement. He is willing to explore difficult subjects, learn from mistakes, and continue developing his knowledge.
+- Growth Mindset: Aavash views challenges as opportunities to learn and improve rather than simply as obstacles.
+- Long-Term Vision: Aavash aims to develop deep expertise in Computer Engineering and technology while continuing to learn, build, experiment, research, and contribute meaningful work to the field.
+- Personal Philosophy: Understand how things work, build something, learn from it, improve it, and keep going.
+- Additional Information: Aavash's profile reflects a strong academic foundation, demonstrated technical curiosity, independent learning ability, and clear motivation toward higher education and a future in computer engineering and technology.
+- Privacy: Specific countries, institutions, financial information, addresses, and other unnecessary identifying details are intentionally omitted from this profile.
+- Disclaimer: This profile is intended for general informational purposes and describes Aavash's academic background, abilities, interests, skills, and aspirations. It does not guarantee admission, academic performance, employment, visa approval, or any other specific future outcome.
   `;
 
   try {
