@@ -15,6 +15,7 @@ import { initScrollReveals } from './utils/animations.js';
 import { initMagneticEffect } from './utils/magnetic.js';
 import { initCursorTorch } from './utils/cursorTorch.js';
 import { initPortfolioChat } from './components/chatWidget.js'; // Added your AI chat widget
+import { initDisableInspect } from './utils/disableInspect.js'; // Added inspection blocker
 
 function runSafely(moduleName, fn) {
   try {
@@ -43,6 +44,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize Portfolio AI Chat Assistant
   runSafely('Portfolio AI Chat', initPortfolioChat);
+
+  // Initialize Security / Disable Inspect
+  runSafely('Disable Inspect Security', initDisableInspect);
 
   console.log(
     '%c Aavash Regmi %c Monochromatic CE Space %c',
