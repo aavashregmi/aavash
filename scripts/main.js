@@ -16,6 +16,7 @@ import { initMagneticEffect } from './utils/magnetic.js';
 import { initCursorTorch } from './utils/cursorTorch.js';
 import { initPortfolioChat } from './components/chatWidget.js'; // Added your AI chat widget
 import { initDisableInspect } from './utils/disableInspect.js'; // Added inspection blocker
+import { initAdminPanel } from './components/adminPanel.js';
 
 function runSafely(moduleName, fn) {
   try {
@@ -47,6 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize Security / Disable Inspect
   runSafely('Disable Inspect Security', initDisableInspect);
+
+  // Initialize Secret Admin Tracker
+  runSafely('Admin Telemetry Panel', initAdminPanel);
 
   console.log(
     '%c Aavash Regmi %c Monochromatic CE Space %c',
