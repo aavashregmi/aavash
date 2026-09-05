@@ -1,6 +1,6 @@
 /**
  * ==========================================================================
- * GLOBAL CLOUD TELEMETRY CONSOLE (FIREBASE POWERED - IP BLOCKING)
+ * GLOBAL CLOUD TELEMETRY CONSOLE (FIREBASE POWERED - SILENT STRIKE TRACKER)
  * ==========================================================================
  */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -27,40 +27,56 @@ try {
 
 /**
  * ==========================================================================
- * ADVANCED NO-COPY & SITE PROTECTION (WITH ADMIN BYPASS)
+ * ADVANCED NO-COPY PROTECTION & SILENT STRIKE TRACKING
  * ==========================================================================
  */
 function enableNoCopyProtection() {
-  // 1. Block right-click context menu unless authenticated as admin
-  document.addEventListener('contextmenu', (e) => {
+  async function registerViolation(e, type) {
     if (sessionStorage.getItem('isAdminAuthenticated') === 'true') return;
+    
     e.preventDefault();
-  });
+    
+    const visitorKey = sessionStorage.getItem('ar_firebase_vkey');
+    if (!visitorKey || !db) return;
 
-  // 2. Block shortcuts for regular visitors, let admin use everything freely
-  document.addEventListener('keydown', (e) => {
-    if (sessionStorage.getItem('isAdminAuthenticated') === 'true') {
-      return;
+    const visitorRef = ref(db, `visitors/${visitorKey}`);
+    try {
+      const snap = await get(visitorRef);
+      if (snap.exists()) {
+        const data = snap.val();
+        const currentViolations = (data.violations || 0) + 1;
+        
+        // Just log the count silently in Firebase without auto-banning
+        await set(visitorRef, {
+          ...data,
+          violations: currentViolations,
+          lastViolationAction: type,
+          lastActivity: Date.now()
+        });
+      }
+    } catch (err) {
+      console.error("Violation tracking error:", err);
     }
+    
+    return false;
+  }
+
+  document.addEventListener('contextmenu', (e) => registerViolation(e, 'Right-Click / Tap'));
+
+  document.addEventListener('keydown', (e) => {
     if (
       e.key === 'F12' ||
       (e.ctrlKey && ['c', 'a', 'x', 'u', 's', 'p'].includes(e.key.toLowerCase())) ||
       (e.ctrlKey && e.shiftKey && ['i', 'j', 'c'].includes(e.key.toLowerCase()))
     ) {
-      e.preventDefault();
-      return false;
+      registerViolation(e, `Forbidden Key: ${e.key}`);
     }
   });
 
-  // 3. Block mouse selection & copy/cut events unless admin
-  ['copy', 'cut', 'selectstart', 'dragstart'].forEach((eventType) => {
-    document.addEventListener(eventType, (e) => {
-      if (sessionStorage.getItem('isAdminAuthenticated') === 'true') return;
-      e.preventDefault();
-    });
+  ['copy', 'cut', 'dragstart'].forEach((eventType) => {
+    document.addEventListener(eventType, (e) => registerViolation(e, eventType));
   });
 
-  // 4. Inject strict CSS user-select bans (bypassed if admin styles/class are handled, or elements default)
   if (!document.getElementById('nocopy-styles')) {
     const style = document.createElement('style');
     style.id = 'nocopy-styles';
@@ -70,6 +86,7 @@ function enableNoCopyProtection() {
         -moz-user-select: none !important;
         -ms-user-select: none !important;
         user-select: none !important;
+        -webkit-touch-callout: none !important;
       }
       input, textarea {
         -webkit-user-select: text !important;
@@ -85,7 +102,6 @@ function enableNoCopyProtection() {
 export function initAdminPanel() {
   if (document.getElementById('secret-admin-trigger')) return;
 
-  // Initialize anti-copy protection on load
   enableNoCopyProtection();
 
   const adminBtn = document.createElement('button');
@@ -134,14 +150,6 @@ export function initAdminPanel() {
         display: flex; flex-direction: column; box-sizing: border-box; overflow-y: auto; color: #ddd; font-size: 13px;
       }
       #visitor-detail-drawer.is-open { right: 0; }
-      
-      @media(max-width: 768px) {
-        .desktop-table-view { display: none !important; }
-        .mobile-card-view { display: flex !important; }
-      }
-      @media(min-width: 769px) {
-        .mobile-card-view { display: none !important; }
-      }
     `;
     document.head.appendChild(styleEl);
   }
@@ -181,7 +189,7 @@ export function initAdminPanel() {
       <div id="analytics-summary-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px;"></div>
 
       <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;">
-        <input type="text" id="visitor-search-input" placeholder="Search IP, city, device, page..." class="admin-input-field" style="flex: 1; min-width: 220px;" />
+        <input type="text" id="visitor-search-input" placeholder="Search IP, location, device, page..." class="admin-input-field" style="flex: 1; min-width: 220px;" />
         
         <select id="filter-status" class="admin-input-field" style="cursor: pointer;">
           <option value="">All Status</option>
@@ -249,9 +257,7 @@ export function initAdminPanel() {
   const secretInput = document.getElementById('admin-secret-input');
   secretInput.addEventListener('input', (e) => {
     if (e.target.value.toLowerCase().trim() === 'har har mahadev') {
-      // Grant full shortcut/copy privileges for this session
       sessionStorage.setItem('isAdminAuthenticated', 'true');
-
       document.getElementById('admin-gate-view').style.display = 'none';
       document.getElementById('admin-dashboard-view').style.display = 'flex';
       renderDashboard();
@@ -275,24 +281,37 @@ export function initAdminPanel() {
 async function trackAndCheckVisitor() {
   if (!db) return;
 
-  let ipData = { ip: '127.0.0.1', city: 'Unknown', country_name: 'Unknown', org: 'Local' };
+  let ipData = { ip: "127.0.0.1", location: "Direct / Network", isp: "Standard ISP" };
+
   try {
-    const res = await fetch('https://ipapi.co/json/');
+    const res = await fetch('https://ipwho.is/');
     if (res.ok) {
       const data = await res.json();
-      ipData.ip = data.ip || '127.0.0.1';
-      ipData.city = data.city || 'Unknown';
-      ipData.country_name = data.country_name || 'Unknown';
-      ipData.org = data.org || 'Local Provider';
+      if (data.success) {
+        ipData.ip = data.ip;
+        ipData.location = `${data.city}, ${data.country}`;
+        ipData.isp = data.connection?.isp || data.connection?.org || "Internet Provider";
+      }
     }
-  } catch (e) {}
+  } catch (e) {
+    try {
+      const fallbackRes = await fetch('https://api.ipify.org?format=json');
+      if (fallbackRes.ok) {
+        const fbData = await fallbackRes.json();
+        ipData.ip = fbData.ip;
+        ipData.location = "Nepal (Local Routing)";
+      }
+    } catch (err) {
+      ipData.ip = "Web Visitor (Hidden)";
+    }
+  }
 
   const cleanIpKey = ipData.ip.replace(/[.#$[\]]/g, '_');
 
   try {
     const blockedSnap = await get(ref(db, `blocked_ips/${cleanIpKey}`));
     if (blockedSnap.exists() && blockedSnap.val() === true) {
-      document.body.innerHTML = `<div style="background:#0a0a0f;color:#ff4d4d;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-size:18px;text-align:center;padding:20px;">Access Denied. Your IP address (${ipData.ip}) has been blocked by the site administrator.</div>`;
+      document.body.innerHTML = `<div style="background:#0a0a0f;color:#ff4d4d;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-size:18px;text-align:center;padding:20px;">Access Denied. Your IP address has been blocked.</div>`;
       return;
     }
   } catch(e) {}
@@ -303,10 +322,24 @@ async function trackAndCheckVisitor() {
     sessionStorage.setItem('ar_firebase_vkey', visitorKey);
   }
 
-  const ua = navigator.userAgent;
-  let deviceType = /mobile/i.test(ua) ? 'Mobile' : (/tablet/i.test(ua) ? 'Tablet' : 'Desktop');
-  let os = /windows/i.test(ua) ? 'Windows' : (/mac/i.test(ua) ? 'MacOS' : (/android/i.test(ua) ? 'Android' : (/iphone|ipad/i.test(ua) ? 'iOS' : 'Linux')));
-  let browser = /chrome/i.test(ua) && !/edge|opr/i.test(ua) ? 'Google Chrome' : (/safari/i.test(ua) && !/chrome/i.test(ua) ? 'Apple Safari' : 'Other Browser');
+  const ua = navigator.userAgent || '';
+  let deviceType = 'Desktop';
+  if (/mobi|android|iphone|ipod/i.test(ua)) deviceType = 'Mobile';
+  else if (/ipad|tablet|kindle/i.test(ua)) deviceType = 'Tablet';
+
+  let os = 'Windows OS';
+  if (/android/i.test(ua)) os = 'Android OS';
+  else if (/iphone|ipad|ipod/i.test(ua)) os = 'iOS';
+  else if (/mac os x/i.test(ua)) os = 'macOS';
+  else if (/linux/i.test(ua)) os = 'Linux OS';
+  else if (/cros/i.test(ua)) os = 'Chrome OS';
+
+  let browser = 'Web Browser';
+  if (/edg/i.test(ua)) browser = 'Microsoft Edge';
+  else if (/opr|opera/i.test(ua)) browser = 'Opera';
+  else if (/chrome/i.test(ua)) browser = 'Google Chrome';
+  else if (/safari/i.test(ua)) browser = 'Apple Safari';
+  else if (/firefox/i.test(ua)) browser = 'Mozilla Firefox';
 
   const now = Date.now();
   const currentPath = window.location.pathname || '/';
@@ -316,11 +349,11 @@ async function trackAndCheckVisitor() {
     vkey: visitorKey,
     ip: ipData.ip,
     cleanIpKey: cleanIpKey,
-    location: `${ipData.city}, ${ipData.country_name}`,
-    isp: ipData.org,
+    location: ipData.location,
+    isp: ipData.isp,
     device: deviceType,
     os: os,
-    deviceModel: `${deviceType} (${os})`,
+    deviceModel: `${deviceType} • ${os}`,
     browser: browser,
     screenResolution: `${window.innerWidth}px × ${window.innerHeight}px`,
     currentPage: currentPath,
@@ -339,6 +372,11 @@ async function trackAndCheckVisitor() {
       visitorRecord.firstSeen = existing.firstSeen || now;
       visitorRecord.sessionStart = existing.sessionStart || now;
       visitorRecord.pagesViewed = (existing.pagesViewed || 1) + (existing.currentPage !== currentPath ? 1 : 0);
+      visitorRecord.violations = existing.violations || 0;
+      visitorRecord.lastViolationAction = existing.lastViolationAction || 'None';
+    } else {
+      visitorRecord.violations = 0;
+      visitorRecord.lastViolationAction = 'None';
     }
     await set(visitorRef, visitorRecord);
   } catch (err) {
@@ -358,7 +396,7 @@ function startGlobalHeartbeat() {
         if (v.cleanIpKey) {
           const blockedSnap = await get(ref(db, `blocked_ips/${v.cleanIpKey}`));
           if (blockedSnap.exists() && blockedSnap.val() === true) {
-            document.body.innerHTML = `<div style="background:#0a0a0f;color:#ff4d4d;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-size:18px;text-align:center;padding:20px;">Access Denied. Your IP address has been blocked by the site administrator.</div>`;
+            document.body.innerHTML = `<div style="background:#0a0a0f;color:#ff4d4d;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-size:18px;text-align:center;padding:20px;">Access Denied. Your IP address has been blocked.</div>`;
             return;
           }
         }
@@ -418,7 +456,7 @@ async function renderDashboard() {
 
   const activeCount = logs.filter(l => l.status === 'ACTIVE').length;
   const totalViews = logs.reduce((sum, l) => sum + (l.pagesViewed || 1), 0);
-  const countries = new Set(logs.map(l => l.location || 'Unknown')).size;
+  const devicesSet = new Set(logs.map(l => l.device || 'Desktop')).size;
 
   if (summaryCardsEl) {
     summaryCardsEl.innerHTML = `
@@ -435,8 +473,8 @@ async function renderDashboard() {
         <div style="font-size: 20px; font-weight: bold; color: #fff;">📄 ${totalViews}</div>
       </div>
       <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 12px; border-radius: 8px;">
-        <div style="font-size: 10px; color: #888;">LOCATIONS</div>
-        <div style="font-size: 20px; font-weight: bold; color: #fff;">🌎 ${countries}</div>
+        <div style="font-size: 10px; color: #888;">DEVICE TYPES</div>
+        <div style="font-size: 20px; font-weight: bold; color: #fff;">💻 ${devicesSet}</div>
       </div>
     `;
   }
@@ -476,11 +514,11 @@ async function renderDashboard() {
       <tr class="admin-table-row" data-session-start="${log.sessionStart || now}" onclick="window.openVisitorDrawer('${log.vkey}')">
         <td style="padding: 12px 10px; color: #888;">${index + 1}</td>
         <td style="padding: 12px 10px;"><span style="color: ${color}; font-weight: bold;">&bull; ${log.status}</span></td>
-        <td style="padding: 12px 10px; font-family: monospace; color: #fff;">${log.ip || 'Unknown'}</td>
-        <td style="padding: 12px 10px;">${log.location || 'Unknown'}</td>
-        <td style="padding: 12px 10px;">${log.deviceModel || 'Unknown'}</td>
-        <td style="padding: 12px 10px;">${log.browser || 'Unknown'}</td>
-        <td style="padding: 12px 10px; color: #33b5ff; font-family: monospace;">${log.currentPage || '/'}</td>
+        <td style="padding: 12px 10px; font-family: monospace; color: #fff;">${log.ip}</td>
+        <td style="padding: 12px 10px;">${log.location}</td>
+        <td style="padding: 12px 10px;">${log.deviceModel}</td>
+        <td style="padding: 12px 10px;">${log.browser}</td>
+        <td style="padding: 12px 10px; color: #33b5ff; font-family: monospace;">${log.currentPage}</td>
         <td style="padding: 12px 10px;" class="session-time-cell">${Math.floor(sec / 60)}m ${sec % 60}s</td>
         <td style="padding: 12px 10px; text-align: center;" onclick="event.stopPropagation()">
           <button onclick="window.openVisitorDrawer('${log.vkey}')" class="admin-btn" style="padding: 4px 8px;">Details</button>
@@ -513,23 +551,22 @@ window.openVisitorDrawer = async function(vkey) {
     </div>
 
     <div style="color: #ccc; display: flex; flex-direction: column; gap: 12px; font-size: 13px; flex-grow: 1;">
-      <div><strong>Status:</strong> <span style="color: ${isBlocked ? '#ff4d4d' : '#00ff80'}">${isBlocked ? 'BLOCKED' : (v.status || 'ACTIVE')}</span></div>
-      <div><strong>IP Address:</strong> <span style="color:#fff; font-family:monospace;">${v.ip || 'Unknown'}</span></div>
-      <div><strong>Location:</strong> ${v.location || 'Unknown'}</div>
-      <div><strong>ISP:</strong> ${v.isp || 'N/A'}</div>
-      <div><strong>Device / OS:</strong> ${v.deviceModel || 'Unknown'}</div>
-      <div><strong>Browser:</strong> ${v.browser || 'Unknown'}</div>
-      <div><strong>Screen Resolution:</strong> ${v.screenResolution || 'N/A'}</div>
-      <div><strong>Current Page:</strong> <span style="color:#33b5ff; font-family:monospace;">${v.currentPage || '/'}</span></div>
-      <div><strong>Pages Viewed:</strong> ${v.pagesViewed || 1}</div>
+      <div><strong>Status:</strong> <span style="color: ${isBlocked ? '#ff4d4d' : '#00ff80'}">${isBlocked ? 'MANUALLY BANNED' : v.status}</span></div>
+      <div><strong>Right-Click / Copy Attempts:</strong> <span style="color: ${(v.violations || 0) > 0 ? '#ffcc00' : '#00ff80'}; font-weight: bold;">${v.violations || 0} times</span></div>
+      <div><strong>Last Blocked Action:</strong> ${v.lastViolationAction || 'None'}</div>
+      <div><strong>IP Address:</strong> <span style="color:#fff; font-family:monospace;">${v.ip}</span></div>
+      <div><strong>Location:</strong> ${v.location}</div>
+      <div><strong>Device & OS:</strong> ${v.deviceModel}</div>
+      <div><strong>Browser Name:</strong> ${v.browser}</div>
+      <div><strong>Current Page:</strong> <span style="color:#33b5ff; font-family:monospace;">${v.currentPage}</span></div>
     </div>
 
     <div style="display: flex; gap: 10px; margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08);">
-      <button onclick="window.toggleBlockIP('${v.cleanIpKey}', ${!isBlocked})" class="admin-btn" style="flex: 1; background: ${isBlocked ? 'rgba(0,255,128,0.1)' : 'rgba(255,165,0,0.1)'}; color: ${isBlocked ? '#00ff80' : '#ffcc00'}; border-color: ${isBlocked ? 'rgba(0,255,128,0.3)' : 'rgba(255,165,0,0.3)'};">
-        ${isBlocked ? 'Unblock IP' : 'Block IP'}
+      <button onclick="window.toggleBlockIP('${v.cleanIpKey}', ${!isBlocked})" class="admin-btn" style="flex: 1; background: ${isBlocked ? 'rgba(0,255,128,0.1)' : 'rgba(255,77,77,0.1)'}; color: ${isBlocked ? '#00ff80' : '#ff4d4d'}; border-color: ${isBlocked ? 'rgba(0,255,128,0.3)' : 'rgba(255,77,77,0.3)'};">
+        ${isBlocked ? 'Unban IP' : 'Ban IP Manually'}
       </button>
       <button onclick="window.removeCloudVisitor('${vkey}')" class="admin-btn" style="background: rgba(255,77,77,0.1); color: #ff4d4d; border-color: rgba(255,77,77,0.3);">
-        Delete
+        Delete Log
       </button>
     </div>
   `;
