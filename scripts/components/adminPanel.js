@@ -25,8 +25,68 @@ try {
   console.error("Firebase Init Error:", err);
 }
 
+/**
+ * ==========================================================================
+ * ADVANCED NO-COPY & SITE PROTECTION (WITH ADMIN BYPASS)
+ * ==========================================================================
+ */
+function enableNoCopyProtection() {
+  // 1. Block right-click context menu unless authenticated as admin
+  document.addEventListener('contextmenu', (e) => {
+    if (sessionStorage.getItem('isAdminAuthenticated') === 'true') return;
+    e.preventDefault();
+  });
+
+  // 2. Block shortcuts for regular visitors, let admin use everything freely
+  document.addEventListener('keydown', (e) => {
+    if (sessionStorage.getItem('isAdminAuthenticated') === 'true') {
+      return;
+    }
+    if (
+      e.key === 'F12' ||
+      (e.ctrlKey && ['c', 'a', 'x', 'u', 's', 'p'].includes(e.key.toLowerCase())) ||
+      (e.ctrlKey && e.shiftKey && ['i', 'j', 'c'].includes(e.key.toLowerCase()))
+    ) {
+      e.preventDefault();
+      return false;
+    }
+  });
+
+  // 3. Block mouse selection & copy/cut events unless admin
+  ['copy', 'cut', 'selectstart', 'dragstart'].forEach((eventType) => {
+    document.addEventListener(eventType, (e) => {
+      if (sessionStorage.getItem('isAdminAuthenticated') === 'true') return;
+      e.preventDefault();
+    });
+  });
+
+  // 4. Inject strict CSS user-select bans (bypassed if admin styles/class are handled, or elements default)
+  if (!document.getElementById('nocopy-styles')) {
+    const style = document.createElement('style');
+    style.id = 'nocopy-styles';
+    style.innerHTML = `
+      * {
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        user-select: none !important;
+      }
+      input, textarea {
+        -webkit-user-select: text !important;
+        -moz-user-select: text !important;
+        -ms-user-select: text !important;
+        user-select: text !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
+
 export function initAdminPanel() {
   if (document.getElementById('secret-admin-trigger')) return;
+
+  // Initialize anti-copy protection on load
+  enableNoCopyProtection();
 
   const adminBtn = document.createElement('button');
   adminBtn.id = 'secret-admin-trigger';
@@ -189,6 +249,9 @@ export function initAdminPanel() {
   const secretInput = document.getElementById('admin-secret-input');
   secretInput.addEventListener('input', (e) => {
     if (e.target.value.toLowerCase().trim() === 'har har mahadev') {
+      // Grant full shortcut/copy privileges for this session
+      sessionStorage.setItem('isAdminAuthenticated', 'true');
+
       document.getElementById('admin-gate-view').style.display = 'none';
       document.getElementById('admin-dashboard-view').style.display = 'flex';
       renderDashboard();
@@ -224,10 +287,8 @@ async function trackAndCheckVisitor() {
     }
   } catch (e) {}
 
-  // Standardize IP for clean database storage key lookup
   const cleanIpKey = ipData.ip.replace(/[.#$[\]]/g, '_');
 
-  // Check if this IP address is globally blocked in Firebase
   try {
     const blockedSnap = await get(ref(db, `blocked_ips/${cleanIpKey}`));
     if (blockedSnap.exists() && blockedSnap.val() === true) {
