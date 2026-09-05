@@ -278,13 +278,27 @@ export function initAdminPanel() {
   document.getElementById('admin-close-dash').addEventListener('click', () => { overlay.style.display = 'none'; closeVisitorDrawer(); });
 
   const secretInput = document.getElementById('admin-secret-input');
-  secretInput.addEventListener('input', (e) => {
-    if (e.target.value.toLowerCase().trim() === 'har har mahadev') {
-      sessionStorage.setItem('isAdminAuthenticated', 'true');
-      document.body.classList.add('admin-auth'); 
-      document.getElementById('admin-gate-view').style.display = 'none';
-      document.getElementById('admin-dashboard-view').style.display = 'flex';
-      renderDashboard();
+  secretInput.addEventListener('input', async (e) => {
+    const userInput = e.target.value.toLowerCase().trim();
+    if (!db) return;
+
+    try {
+      const passRef = ref(db, 'admin_config/secretPassphrase');
+      const snapshot = await get(passRef);
+      
+      if (snapshot.exists()) {
+        const correctPass = snapshot.val().toLowerCase().trim();
+        
+        if (userInput === correctPass) {
+          sessionStorage.setItem('isAdminAuthenticated', 'true');
+          document.body.classList.add('admin-auth'); 
+          document.getElementById('admin-gate-view').style.display = 'none';
+          document.getElementById('admin-dashboard-view').style.display = 'flex';
+          renderDashboard();
+        }
+      }
+    } catch (err) {
+      console.error("Firebase auth check error:", err);
     }
   });
 

@@ -3,11 +3,31 @@
  * ADVANCED DEVICE SECURITY, PRIVACY SHIELD & SCROLLING PIN BANNER MODULE
  * ==========================================================================
  */
-export function initDisableInspect() {
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+export function initDisableInspect(databaseInstance) {
+  const db = databaseInstance;
   const warningTitle = "SECURITY NOTICE";
   const MAX_STRIKES = 7; // 7th attempt will lock them out
   const LOCK_DURATION = 60 * 1000; // 1-minute ban duration after final strike
-  const SECRET_PIN = "+-+-";
+  
+  // Dynamic secret PIN fetched from Firebase (with a safe fallback)
+  let SECRET_PIN = "+-+-";
+
+  // Fetch the secure PIN from Firebase database on initialization
+  async function fetchSecretPin() {
+    if (!db) return;
+    try {
+      const pinRef = ref(db, 'admin_config/lockPin');
+      const snapshot = await get(pinRef);
+      if (snapshot.exists()) {
+        SECRET_PIN = snapshot.val();
+      }
+    } catch (err) {
+      console.error("Failed to sync lock PIN from cloud:", err);
+    }
+  }
+  fetchSecretPin();
 
   // Helper to check if admin is fully authenticated right now
   function isAdmin() {
@@ -254,13 +274,13 @@ export function initDisableInspect() {
 
   // Event Listeners for Violations (Bypassed entirely for Admin)
   document.addEventListener('contextmenu', function(e) {
-    if (isAdmin()) return; // Let admin right-click normally without warning
+    if (isAdmin()) return; 
     e.preventDefault();
     triggerSecurityAction();
   });
 
   document.addEventListener('keydown', function(e) {
-    if (isAdmin()) return; // Let admin use F12 / shortcuts normally without warning
+    if (isAdmin()) return; 
     if (e.key === 'F12') {
       e.preventDefault();
       triggerSecurityAction();
