@@ -5,19 +5,26 @@
  */
 export function initDisableInspect() {
   const warningTitle = "SECURITY NOTICE";
-  const strikeOneMessage = "Protected Content: Source code inspection and content copying are restricted on this portfolio. Be advised: a second violation will result in a temporary block or permanent restriction from your device.";
-  
-  const LOCK_DURATION = 60 * 1000; // Exact 1-minute ban duration for 2nd and 3rd strikes
+  const MAX_STRIKES = 7; // 7th attempt will lock them out
+  const LOCK_DURATION = 60 * 1000; // 1-minute ban duration after final strike
   const SECRET_PIN = "+-+-";
 
-  // Check existing lock status immediately upon script load
-  checkExistingLock();
+  // Helper to check if admin is fully authenticated right now
+  function isAdmin() {
+    return sessionStorage.getItem('isAdminAuthenticated') === 'true' || document.body.classList.contains('admin-auth');
+  }
+
+  // Check existing lock status immediately upon script load (skipped if admin)
+  if (!isAdmin()) {
+    checkExistingLock();
+  }
 
   function getStrikeCount() {
     return parseInt(localStorage.getItem('ar_security_strikes') || '0', 10);
   }
 
   function checkExistingLock() {
+    if (isAdmin()) return;
     const lockUntil = localStorage.getItem('ar_lock_until');
     if (lockUntil) {
       const remainingTime = parseInt(lockUntil, 10) - Date.now();
@@ -30,23 +37,49 @@ export function initDisableInspect() {
   }
 
   function triggerSecurityAction() {
+    if (isAdmin()) return; // Instant exit if admin
     if (localStorage.getItem('ar_lock_until')) return;
 
     let strikeCount = getStrikeCount();
     strikeCount++;
     localStorage.setItem('ar_security_strikes', strikeCount.toString());
 
-    if (strikeCount === 1) {
-      showCenterModal(strikeOneMessage);
+    if (strikeCount < MAX_STRIKES) {
+      // Progressive warnings tailored to each specific strike count
+      const message = getSequentialWarningMessage(strikeCount);
+      showCenterModal(message);
     } else {
-      // 2nd, 3rd, and subsequent strikes lock them down for exactly 1 minute
+      // 7th strike: Lock them down for 1 minute
       const lockTime = Date.now() + LOCK_DURATION;
       localStorage.setItem('ar_lock_until', lockTime.toString());
       freezeWebsite(LOCK_DURATION);
     }
   }
 
+  // Generates a unique, sequential warning message depending on the attempt count
+  function getSequentialWarningMessage(count) {
+    const base = "Protected Content: Source code inspection and content copying are restricted on this portfolio.";
+    
+    switch (count) {
+      case 1:
+        return `${base} (Attempt 1 of ${MAX_STRIKES}). Please refrain from attempting to inspect or copy content.`;
+      case 2:
+        return `${base} (Attempt 2 of ${MAX_STRIKES}). This is your second warning. Please respect the site policies.`;
+      case 3:
+        return `${base} (Attempt 3 of ${MAX_STRIKES}). You have been warned 3 times now. Further attempts will be logged.`;
+      case 4:
+        return `${base} (Attempt 4 of ${MAX_STRIKES}). You are past the halfway mark of allowed warnings.`;
+      case 5:
+        return `${base} (Attempt 5 of ${MAX_STRIKES}). Warning: You are getting very close to a temporary device restriction.`;
+      case 6:
+        return `${base} (Attempt 6 of ${MAX_STRIKES}). Final Warning! One last violation will lead to a temporary ban.`;
+      default:
+        return `${base} (Attempt ${count} of ${MAX_STRIKES}).`;
+    }
+  }
+
   function showCenterModal(messageText) {
+    if (isAdmin()) return;
     if (document.getElementById('security-modal-overlay')) return;
 
     const overlay = document.createElement('div');
@@ -114,7 +147,7 @@ export function initDisableInspect() {
   }
 
   function freezeWebsite(durationMs) {
-    // Hide all underlying content completely
+    if (isAdmin()) return;
     document.body.style.pointerEvents = 'none';
     document.body.style.userSelect = 'none';
 
@@ -125,7 +158,6 @@ export function initDisableInspect() {
 
     const strikeCount = getStrikeCount();
 
-    // Inject CSS keyframes for continuous left-to-right/right-to-left marquee animation
     if (!document.getElementById('security-marquee-style')) {
       const styleSheet = document.createElement('style');
       styleSheet.id = 'security-marquee-style';
@@ -160,7 +192,6 @@ export function initDisableInspect() {
     });
 
     lockScreen.innerHTML = `
-      <!-- Continuous scrolling small top banner -->
       <div style="position: absolute; top: 15px; width: 100%; overflow: hidden; white-space: nowrap; background: rgba(255,255,255,0.03); padding: 6px 0; border-top: 1px solid rgba(255,255,255,0.08); border-bottom: 1px solid rgba(255,255,255,0.08);">
         <div style="display: inline-block; animation: scrollBanner 12s linear infinite; font-size: 11px; letter-spacing: 3px; color: #888; text-transform: uppercase;">
           ENTER 4 DIGIT NUMBER &nbsp;&nbsp;&bull;&nbsp;&nbsp; ENTER 4 DIGIT NUMBER &nbsp;&nbsp;&bull;&nbsp;&nbsp; ENTER 4 DIGIT NUMBER &nbsp;&nbsp;&bull;&nbsp;&nbsp; ENTER 4 DIGIT NUMBER
@@ -181,7 +212,6 @@ export function initDisableInspect() {
 
     document.body.appendChild(lockScreen);
 
-    // PIN Input Listener for Bypass
     setTimeout(() => {
       const pinInput = document.getElementById('unlock-pin-input');
       if (pinInput) {
@@ -199,13 +229,13 @@ export function initDisableInspect() {
       }
     }, 100);
 
-    // Live countdown timer handler with persistent local tracking
     const updateCountdown = () => {
       const lockUntil = parseInt(localStorage.getItem('ar_lock_until') || '0', 10);
       const timeLeft = Math.ceil((lockUntil - Date.now()) / 1000);
 
       if (timeLeft <= 0) {
         localStorage.removeItem('ar_lock_until');
+        localStorage.removeItem('ar_security_strikes');
         window.location.reload();
         return;
       }
@@ -222,13 +252,15 @@ export function initDisableInspect() {
     setInterval(updateCountdown, 1000);
   }
 
-  // Event Listeners for Violations
+  // Event Listeners for Violations (Bypassed entirely for Admin)
   document.addEventListener('contextmenu', function(e) {
+    if (isAdmin()) return; // Let admin right-click normally without warning
     e.preventDefault();
     triggerSecurityAction();
   });
 
   document.addEventListener('keydown', function(e) {
+    if (isAdmin()) return; // Let admin use F12 / shortcuts normally without warning
     if (e.key === 'F12') {
       e.preventDefault();
       triggerSecurityAction();

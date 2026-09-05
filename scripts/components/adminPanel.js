@@ -27,12 +27,17 @@ try {
 
 /**
  * ==========================================================================
- * ADVANCED NO-COPY PROTECTION & SILENT STRIKE TRACKING
+ * ADVANCED NO-COPY PROTECTION & SILENT STRIKE TRACKER
  * ==========================================================================
  */
 function enableNoCopyProtection() {
+  // Helper to check if admin is fully authenticated right now
+  function isAdmin() {
+    return sessionStorage.getItem('isAdminAuthenticated') === 'true' || document.body.classList.contains('admin-auth');
+  }
+
   async function registerViolation(e, type) {
-    if (sessionStorage.getItem('isAdminAuthenticated') === 'true') return;
+    if (isAdmin()) return; // Instant exit if admin
     
     e.preventDefault();
     
@@ -46,7 +51,6 @@ function enableNoCopyProtection() {
         const data = snap.val();
         const currentViolations = (data.violations || 0) + 1;
         
-        // Just log the count silently in Firebase without auto-banning
         await set(visitorRef, {
           ...data,
           violations: currentViolations,
@@ -61,9 +65,15 @@ function enableNoCopyProtection() {
     return false;
   }
 
-  document.addEventListener('contextmenu', (e) => registerViolation(e, 'Right-Click / Tap'));
+  document.addEventListener('contextmenu', (e) => {
+    if (isAdmin()) {
+      return true; // Let browser handle standard right-click for admin
+    }
+    registerViolation(e, 'Right-Click / Tap');
+  });
 
   document.addEventListener('keydown', (e) => {
+    if (isAdmin()) return;
     if (
       e.key === 'F12' ||
       (e.ctrlKey && ['c', 'a', 'x', 'u', 's', 'p'].includes(e.key.toLowerCase())) ||
@@ -74,19 +84,28 @@ function enableNoCopyProtection() {
   });
 
   ['copy', 'cut', 'dragstart'].forEach((eventType) => {
-    document.addEventListener(eventType, (e) => registerViolation(e, eventType));
+    document.addEventListener(eventType, (e) => {
+      if (isAdmin()) return;
+      registerViolation(e, eventType);
+    });
   });
 
   if (!document.getElementById('nocopy-styles')) {
     const style = document.createElement('style');
     style.id = 'nocopy-styles';
     style.innerHTML = `
-      * {
+      body:not(.admin-auth) * {
         -webkit-user-select: none !important;
         -moz-user-select: none !important;
         -ms-user-select: none !important;
         user-select: none !important;
         -webkit-touch-callout: none !important;
+      }
+      body.admin-auth * {
+        -webkit-user-select: text !important;
+        -moz-user-select: text !important;
+        -ms-user-select: text !important;
+        user-select: text !important;
       }
       input, textarea {
         -webkit-user-select: text !important;
@@ -101,6 +120,10 @@ function enableNoCopyProtection() {
 
 export function initAdminPanel() {
   if (document.getElementById('secret-admin-trigger')) return;
+
+  // ENSURE FRESH STARTUP ON REFRESH: Wipe admin authentication flag on fresh load
+  sessionStorage.removeItem('isAdminAuthenticated');
+  document.body.classList.remove('admin-auth');
 
   enableNoCopyProtection();
 
@@ -258,6 +281,7 @@ export function initAdminPanel() {
   secretInput.addEventListener('input', (e) => {
     if (e.target.value.toLowerCase().trim() === 'har har mahadev') {
       sessionStorage.setItem('isAdminAuthenticated', 'true');
+      document.body.classList.add('admin-auth'); 
       document.getElementById('admin-gate-view').style.display = 'none';
       document.getElementById('admin-dashboard-view').style.display = 'flex';
       renderDashboard();
@@ -556,7 +580,7 @@ window.openVisitorDrawer = async function(vkey) {
       <div><strong>Last Blocked Action:</strong> ${v.lastViolationAction || 'None'}</div>
       <div><strong>IP Address:</strong> <span style="color:#fff; font-family:monospace;">${v.ip}</span></div>
       <div><strong>Location:</strong> ${v.location}</div>
-      <div><strong>Device & OS:</strong> ${v.deviceModel}</div>
+      <div><strong>Device & OS:</strong> ${v.deviceModel}<span></div>
       <div><strong>Browser Name:</strong> ${v.browser}</div>
       <div><strong>Current Page:</strong> <span style="color:#33b5ff; font-family:monospace;">${v.currentPage}</span></div>
     </div>
