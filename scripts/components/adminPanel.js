@@ -1,6 +1,6 @@
 /**
  * ==========================================================================
- * GLOBAL CLOUD TELEMETRY CONSOLE (FIREBASE POWERED)
+ * GLOBAL CLOUD TELEMETRY CONSOLE (FIREBASE POWERED - IP BLOCKING)
  * ==========================================================================
  */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -163,8 +163,6 @@ export function initAdminPanel() {
           </thead>
           <tbody id="visitor-table-body"></tbody>
         </table>
-
-        <div class="mobile-card-view" id="visitor-mobile-list" style="flex-direction: column; gap: 10px; padding: 12px; display: none;"></div>
       </div>
     </div>
   `;
@@ -214,20 +212,6 @@ export function initAdminPanel() {
 async function trackAndCheckVisitor() {
   if (!db) return;
 
-  let visitorKey = sessionStorage.getItem('ar_firebase_vkey');
-  if (!visitorKey) {
-    visitorKey = 'VKEY-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-    sessionStorage.setItem('ar_firebase_vkey', visitorKey);
-  }
-
-  try {
-    const snap = await get(ref(db, `visitors/${visitorKey}/status`));
-    if (snap.exists() && snap.val() === 'BLOCKED') {
-      document.body.innerHTML = `<div style="background:#0a0a0f;color:#ff4d4d;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-size:18px;">Access Denied. Your device has been blocked by the site administrator.</div>`;
-      return;
-    }
-  } catch(e) {}
-
   let ipData = { ip: '127.0.0.1', city: 'Unknown', country_name: 'Unknown', org: 'Local' };
   try {
     const res = await fetch('https://ipapi.co/json/');
@@ -239,6 +223,24 @@ async function trackAndCheckVisitor() {
       ipData.org = data.org || 'Local Provider';
     }
   } catch (e) {}
+
+  // Standardize IP for clean database storage key lookup
+  const cleanIpKey = ipData.ip.replace(/[.#$[\]]/g, '_');
+
+  // Check if this IP address is globally blocked in Firebase
+  try {
+    const blockedSnap = await get(ref(db, `blocked_ips/${cleanIpKey}`));
+    if (blockedSnap.exists() && blockedSnap.val() === true) {
+      document.body.innerHTML = `<div style="background:#0a0a0f;color:#ff4d4d;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-size:18px;text-align:center;padding:20px;">Access Denied. Your IP address (${ipData.ip}) has been blocked by the site administrator.</div>`;
+      return;
+    }
+  } catch(e) {}
+
+  let visitorKey = sessionStorage.getItem('ar_firebase_vkey');
+  if (!visitorKey) {
+    visitorKey = 'VKEY-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    sessionStorage.setItem('ar_firebase_vkey', visitorKey);
+  }
 
   const ua = navigator.userAgent;
   let deviceType = /mobile/i.test(ua) ? 'Mobile' : (/tablet/i.test(ua) ? 'Tablet' : 'Desktop');
@@ -252,6 +254,7 @@ async function trackAndCheckVisitor() {
     sessionId: 'SID-' + Math.random().toString(36).substr(2, 6).toUpperCase(),
     vkey: visitorKey,
     ip: ipData.ip,
+    cleanIpKey: cleanIpKey,
     location: `${ipData.city}, ${ipData.country_name}`,
     isp: ipData.org,
     device: deviceType,
@@ -272,14 +275,9 @@ async function trackAndCheckVisitor() {
     const snapshot = await get(visitorRef);
     if (snapshot.exists()) {
       const existing = snapshot.val();
-      if (existing.status === 'BLOCKED') {
-        document.body.innerHTML = `<div style="background:#0a0a0f;color:#ff4d4d;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-size:18px;">Access Denied. Your device has been blocked by the site administrator.</div>`;
-        return;
-      }
       visitorRecord.firstSeen = existing.firstSeen || now;
       visitorRecord.sessionStart = existing.sessionStart || now;
       visitorRecord.pagesViewed = (existing.pagesViewed || 1) + (existing.currentPage !== currentPath ? 1 : 0);
-      visitorRecord.status = 'ACTIVE';
     }
     await set(visitorRef, visitorRecord);
   } catch (err) {
@@ -293,9 +291,17 @@ function startGlobalHeartbeat() {
     const visitorKey = sessionStorage.getItem('ar_firebase_vkey');
     if (!visitorKey) return;
     try {
-      const snap = await get(ref(db, `visitors/${visitorKey}/status`));
-      if (snap.exists() && snap.val() === 'BLOCKED') return;
-
+      const snap = await get(ref(db, `visitors/${visitorKey}`));
+      if (snap.exists()) {
+        const v = snap.val();
+        if (v.cleanIpKey) {
+          const blockedSnap = await get(ref(db, `blocked_ips/${v.cleanIpKey}`));
+          if (blockedSnap.exists() && blockedSnap.val() === true) {
+            document.body.innerHTML = `<div style="background:#0a0a0f;color:#ff4d4d;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-size:18px;text-align:center;padding:20px;">Access Denied. Your IP address has been blocked by the site administrator.</div>`;
+            return;
+          }
+        }
+      }
       await set(ref(db, `visitors/${visitorKey}/lastActivity`), Date.now());
       await set(ref(db, `visitors/${visitorKey}/status`), 'ACTIVE');
     } catch (e) {}
@@ -325,19 +331,25 @@ async function renderDashboard() {
   tbody.innerHTML = `<tr><td colspan="9" style="padding: 25px; text-align: center; color: #888;">Syncing with Firebase cloud...</td></tr>`;
 
   let logs = [];
+  let blockedIpsMap = {};
   try {
-    const snapshot = await get(child(ref(db), 'visitors'));
-    if (snapshot.exists()) {
-      logs = Object.values(snapshot.val());
-    }
+    const [snapshot, blockedSnap] = await Promise.all([
+      get(child(ref(db), 'visitors')),
+      get(child(ref(db), 'blocked_ips'))
+    ]);
+    if (snapshot.exists()) logs = Object.values(snapshot.val());
+    if (blockedSnap.exists()) blockedIpsMap = blockedSnap.val();
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="9" style="padding: 25px; text-align: center; color: #ff4d4d;">Error loading Firebase data. Check Database rules.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" style="padding: 25px; text-align: center; color: #ff4d4d;">Error loading Firebase data.</td></tr>`;
     return;
   }
 
   const now = Date.now();
   logs.forEach(l => {
-    if (l.status !== 'BLOCKED') {
+    const isIpBlocked = l.cleanIpKey && blockedIpsMap[l.cleanIpKey] === true;
+    if (isIpBlocked) {
+      l.status = 'BLOCKED';
+    } else {
       const inactive = now - (l.lastActivity || now);
       l.status = inactive > 60000 ? 'OFFLINE' : (inactive > 20000 ? 'IDLE' : 'ACTIVE');
     }
@@ -427,7 +439,11 @@ window.openVisitorDrawer = async function(vkey) {
   const inner = document.getElementById('drawer-content-inner');
   if (!drawer || !inner) return;
 
-  const isBlocked = v.status === 'BLOCKED';
+  let isBlocked = false;
+  if (v.cleanIpKey) {
+    const blockedSnap = await get(ref(db, `blocked_ips/${v.cleanIpKey}`));
+    isBlocked = blockedSnap.exists() && blockedSnap.val() === true;
+  }
 
   inner.innerHTML = `
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;">
@@ -436,7 +452,7 @@ window.openVisitorDrawer = async function(vkey) {
     </div>
 
     <div style="color: #ccc; display: flex; flex-direction: column; gap: 12px; font-size: 13px; flex-grow: 1;">
-      <div><strong>Status:</strong> <span style="color: ${isBlocked ? '#ff4d4d' : '#00ff80'}">${v.status || 'ACTIVE'}</span></div>
+      <div><strong>Status:</strong> <span style="color: ${isBlocked ? '#ff4d4d' : '#00ff80'}">${isBlocked ? 'BLOCKED' : (v.status || 'ACTIVE')}</span></div>
       <div><strong>IP Address:</strong> <span style="color:#fff; font-family:monospace;">${v.ip || 'Unknown'}</span></div>
       <div><strong>Location:</strong> ${v.location || 'Unknown'}</div>
       <div><strong>ISP:</strong> ${v.isp || 'N/A'}</div>
@@ -448,8 +464,8 @@ window.openVisitorDrawer = async function(vkey) {
     </div>
 
     <div style="display: flex; gap: 10px; margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08);">
-      <button onclick="window.toggleBlockVisitor('${vkey}', ${!isBlocked})" class="admin-btn" style="flex: 1; background: ${isBlocked ? 'rgba(0,255,128,0.1)' : 'rgba(255,165,0,0.1)'}; color: ${isBlocked ? '#00ff80' : '#ffcc00'}; border-color: ${isBlocked ? 'rgba(0,255,128,0.3)' : 'rgba(255,165,0,0.3)'};">
-        ${isBlocked ? 'Unblock IP' : 'Block Device'}
+      <button onclick="window.toggleBlockIP('${v.cleanIpKey}', ${!isBlocked})" class="admin-btn" style="flex: 1; background: ${isBlocked ? 'rgba(0,255,128,0.1)' : 'rgba(255,165,0,0.1)'}; color: ${isBlocked ? '#00ff80' : '#ffcc00'}; border-color: ${isBlocked ? 'rgba(0,255,128,0.3)' : 'rgba(255,165,0,0.3)'};">
+        ${isBlocked ? 'Unblock IP' : 'Block IP'}
       </button>
       <button onclick="window.removeCloudVisitor('${vkey}')" class="admin-btn" style="background: rgba(255,77,77,0.1); color: #ff4d4d; border-color: rgba(255,77,77,0.3);">
         Delete
@@ -463,10 +479,14 @@ window.closeVisitorDrawer = function() {
   document.getElementById('visitor-detail-drawer')?.classList.remove('is-open');
 };
 
-window.toggleBlockVisitor = async function(vkey, blockState) {
-  if (!db) return;
-  const newStatus = blockState ? 'BLOCKED' : 'ACTIVE';
-  await set(ref(db, `visitors/${vkey}/status`), newStatus);
+window.toggleBlockIP = async function(cleanIpKey, blockState) {
+  if (!db || !cleanIpKey) return;
+  const ipRef = ref(db, `blocked_ips/${cleanIpKey}`);
+  if (blockState) {
+    await set(ipRef, true);
+  } else {
+    await remove(ipRef);
+  }
   window.closeVisitorDrawer();
   renderDashboard();
 };
